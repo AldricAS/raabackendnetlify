@@ -1,57 +1,67 @@
-const express = require('express');
 const axios = require('axios');
-const cors = require('cors');
 
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// ⚠️ Saran: pindahin ke ENV nanti
-const API_KEY = process.env.API_KEY || "bN5dtLeL65dy1xNkanpBs7TdMrYQopnS";
+const API_KEY = "bN5dtLeL65dy1xNkanpBs7TdMrYQopnS";
 const PROJECT_SLUG = "raa-store";
 
-app.post('/buat-bayar', async (req, res) => {
-    try {
-        const { nominal } = req.body;
+exports.handler = async (event) => {
 
-        // Validasi input
-        if (!nominal) {
-            return res.status(400).json({
-                error: "Nominal wajib diisi"
-            });
-        }
+  // CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST"
+      }
+    };
+  }
 
-        console.log("Request masuk:", nominal);
+  try {
+    // 🔥 Ini pengganti req.body
+    const { nominal } = JSON.parse(event.body || "{}");
 
-        const response = await axios.post(
-            'https://app.pakasir.com/api/transactioncreate/qris',
-            {
-                project: PROJECT_SLUG,
-                order_id: "RAA-" + Date.now(),
-                amount: parseInt(nominal),
-                api_key: API_KEY
-            }
-        );
-
-        return res.json(response.data);
-
-    } catch (error) {
-        console.error("Error:", error.response?.data || error.message);
-
-        return res.status(500).json({
-            error: "Gagal kontak Pakasir",
-            detail: error.response?.data || error.message
-        });
+    if (!nominal) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: "Nominal wajib diisi" })
+      };
     }
-});
 
-// 🔥 FIX penting: route root biar gak 404
-app.get('/', (req, res) => {
-    res.send("Backend RAA Store aktif 🚀");
-});
+    console.log(`Memproses nominal: ${nominal}`);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log("🚀 Server jalan di port " + PORT);
-});
+    // 🔥 INI SAMA PERSIS KAYAK KODE LU
+    const response = await axios.post(
+      'https://app.pakasir.com/api/transactioncreate/qris',
+      {
+        project: PROJECT_SLUG,
+        order_id: "RAA-" + Date.now(),
+        amount: parseInt(nominal),
+        api_key: API_KEY
+      }
+    );
+
+    // 🔥 pengganti res.json()
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify(response.data)
+    };
+
+  } catch (error) {
+    console.error("Error:", error.response?.data || error.message);
+
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        error: error.response?.data || error.message
+      })
+    };
+  }
+};
