@@ -1,7 +1,16 @@
 const axios = require("axios");
 
 exports.handler = async (event) => {
-  // handle CORS preflight
+
+  if (event.httpMethod === "GET") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "API jalan bro 🚀, tapi pakai POST ya"
+      })
+    };
+  }
+
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -14,8 +23,15 @@ exports.handler = async (event) => {
   }
 
   try {
-    const body = JSON.parse(event.body);
+    const body = JSON.parse(event.body || "{}");
     const { nominal } = body;
+
+    if (!nominal) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Nominal wajib diisi" })
+      };
+    }
 
     const response = await axios.post(
       "https://app.pakasir.com/api/transactioncreate/qris",
