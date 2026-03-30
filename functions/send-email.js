@@ -1,7 +1,16 @@
 const { Resend } = require('resend');
 
 // Inisialisasi Resend dengan API Key kamu
-const resend = new Resend('re_CTQN5ZaT_LZvcdtNhGigvSk81EEdLRuSm');
+const resend = new Resend('import { Resend } from 'resend';
+
+const resend = new Resend('re_PE4DWNfj_Gk5ZLVprpZprw7ac6Ncdu7Bs');
+
+resend.emails.send({
+  from: 'onboarding@resend.dev',
+  to: 'aldxverifteam@gmail.com',
+  subject: 'Hello World',
+  html: '<p>Congrats on sending your <strong>first email</strong>!</p>'
+});');
 
 exports.handler = async (event, context) => {
   // Hanya izinkan request POST dari frontend
